@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "deploymachinelearningmodelstoproduction-singh"
+version = "0.1.0"
+description = ""
+authors = ["DrSkippy <scott@aspenmesh.io>"]
+
+[tool.poetry.dependencies]
+python = ">=3.8,<3.9"
+sklearn = "^0.0"
+pandas = "^1.4.2"
+numpy = "^1.22.4"
+matplotlib = "^3.5.2"
+jupyter = "^1.0.0"
+notebook = "^6.4.11"
+tensorflow = "^2.9.1"
+keras = "^2.9.0"
+joblib = "^1.1.0"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
