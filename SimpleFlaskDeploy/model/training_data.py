@@ -1,9 +1,11 @@
 import pandas as pd
 import numpy as np
 
-file_path = "../data/adult_earning/"
+file_path = "../data/"
 hfile = file_path + "adult.names"
 dfile = file_path + "adult.data"
+features = ['age', 'fnlwgt', 'sex-val', 'education-num', "capital-gain", "capital-loss", "hours-per-week"]
+
 
 def get_header():
     header = []
@@ -16,24 +18,24 @@ def get_header():
     header.append("class")
     return header
 
+
 def get_training_dataframe():
     header = get_header()
     df = pd.read_csv(dfile, names=header)
     return df
 
+
 def select_encoded_features():
-    features = ['age', 'fnlwgt', 'sex-val', 'education-num', "capital-gain", "capital-loss", "hours-per-week"]
     df = get_training_dataframe()
     df["sex-val"] = df["sex"].apply(lambda x: 1 if "M" in x else 0)
     return df[features].copy()
 
+
 def random_feature_sample(n=1):
     df = select_encoded_features()
-    df.sample(n)
-    return df
+    return df.sample(n)
+
 
 def random_feature_sample_array(n=1):
     df = random_feature_sample(n)
     return df.to_numpy(copy=True)
-
-

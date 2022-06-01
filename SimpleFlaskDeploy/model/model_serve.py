@@ -1,11 +1,16 @@
 __version__ = '0.1.0'
 
 from flask import Flask, Response, request, send_file
-import pandas as pd
 import json
+import datetime
+
 import numpy as np
+import pandas as pd
+
 from joblib import load
-from model import training_data as td
+
+import training_data
+import tensorflow as tf
 
 # server configuration
 from logging.config import dictConfig
@@ -27,9 +32,6 @@ dictConfig({
 
 app = Flask(__name__)
 
-model_nn = load("neural_net.pkl")
-model_nn_sc = load("neural_net_scaler.pkl")
-
 
 class NumpyArrayEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -48,7 +50,10 @@ def configuration():
     rdata = json.dumps({
         "version": __version__,
         "date": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M")})
-    response_headers = resp_header(rdata)
+    response_headers = [
+        ('Content-type', 'application/json'),
+        ('Content-Length', str(len(rdata)))
+    ]
     return Response(response=rdata, status=200, headers=response_headers)
 
 
@@ -57,16 +62,20 @@ def predict():
     """
     JSON Post Payload:
     { "size": 2,
-      "data": [[],
-      ...
-      []]
+      "data": [
+            ['age', 'fnlwgt', 'sex-val', 'education-num', "capital-gain", "capital-loss", "hours-per-week"],
+            ['age', 'fnlwgt', 'sex-val', 'education-num', "capital-gain", "capital-loss", "hours-per-week"]
+        ]
     }
     :return:
     """
     records = request.get_json()
-    records = nnsc.transform(records)
-    y_pred = model.predict(records)
-    rdata = json.dumps({"size" = len(records), "data": y_pred}, cls = NumpyArrayEncoder)
+    df = pd.DataFrame(records["data"], columns=training_data.features)
+    model_nn_sc = load("../data/neural_net_scaler.pkl")
+    model_nn = load("../data/neural_net.pkl")
+    data = model_nn_sc.transform(df)
+    y_pred = model_nn.predict(data)
+    rdata = json.dumps({"size": len(records), "data":[np.argmin(x) for x in y_pred]}, cls=NumpyArrayEncoder)
     response_headers = [
         ('Content-type', 'application/json'),
         ('Content-Length', str(len(rdata)))
@@ -74,21 +83,23 @@ def predict():
     return Response(response=rdata, status=200, headers=response_headers)
 
 
-@app.route('/exmple')
-@app.route('/exmples/<n>')
-def summary_books_read_by_year(n=1):
-    da = td.random_feature_sample_array(n)
+@app.route('/example')
+@app.route('/examples/<n>')
+def examples(n=1):
+    n = int(n)
+    assert (n > 0)
+    data = training_data.random_feature_sample_array(n)
     res = {
-        "size" = n,
-                 "data" = da
+        "size": n,
+        "data": data
     }
-    rdata = json.dumps(res, cls=NumpyArrayEncoder))
+    rdata = json.dumps(res, cls=NumpyArrayEncoder)
     response_headers = [
-    ('Content-type', 'application/json'),
-    ('Content-Length', str(len(rdata)))
+        ('Content-type', 'application/json'),
+        ('Content-Length', str(len(rdata)))
+    ]
+    return Response(response=rdata, status=200, headers=response_headers)
 
-]
-return Response(response=rdata, status=200, headers=response_headers)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)

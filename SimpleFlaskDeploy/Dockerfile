@@ -22,4 +22,4 @@ COPY ./model $APP/
 RUN mkdir ./data
 COPY ./data /data
 
-ENTRYPOINT poetry run uwsgi --ini model_server.ini
+ENTRYPOINT poetry run uwsgi --ini model_serve.ini
