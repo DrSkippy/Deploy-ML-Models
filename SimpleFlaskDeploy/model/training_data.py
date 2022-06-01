@@ -20,3 +20,20 @@ def get_training_dataframe():
     header = get_header()
     df = pd.read_csv(dfile, names=header)
     return df
+
+def select_encoded_features():
+    features = ['age', 'fnlwgt', 'sex-val', 'education-num', "capital-gain", "capital-loss", "hours-per-week"]
+    df = get_training_dataframe()
+    df["sex-val"] = df["sex"].apply(lambda x: 1 if "M" in x else 0)
+    return df[features].copy()
+
+def random_feature_sample(n=1):
+    df = select_encoded_features()
+    df.sample(n)
+    return df
+
+def random_feature_sample_array(n=1):
+    df = random_feature_sample(n)
+    return df.to_numpy(copy=True)
+
+
