@@ -75,7 +75,7 @@ def predict():
     model_nn = load("../data/neural_net.pkl")
     data = model_nn_sc.transform(df)
     y_pred = model_nn.predict(data)
-    rdata = json.dumps({"size": len(records), "data":[np.argmin(x) for x in y_pred]}, cls=NumpyArrayEncoder)
+    rdata = json.dumps({"size": len(y_pred), "data": [np.argmin(x) for x in y_pred]}, cls=NumpyArrayEncoder)
     response_headers = [
         ('Content-type', 'application/json'),
         ('Content-Length', str(len(rdata)))
