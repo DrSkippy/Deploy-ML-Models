@@ -70,12 +70,16 @@ def predict():
     :return:
     """
     records = request.get_json()
-    df = pd.DataFrame(records["data"], columns=training_data.features)
-    model_nn_sc = load("../data/neural_net_scaler.pkl")
-    model_nn = load("../data/neural_net.pkl")
-    data = model_nn_sc.transform(df)
-    y_pred = model_nn.predict(data)
-    rdata = json.dumps({"size": len(y_pred), "data": [np.argmin(x) for x in y_pred]}, cls=NumpyArrayEncoder)
+    res = training_data.vet_features(records["data"])
+    if len(res["errors"]) > 0:
+        rdata = json.dumps(res, cls=NumpyArrayEncoder)
+    else:
+        df = pd.DataFrame(records["data"], columns=training_data.features)
+        model_nn_sc = load("../data/neural_net_scaler.pkl")
+        model_nn = load("../data/neural_net.pkl")
+        data = model_nn_sc.transform(df)
+        y_pred = model_nn.predict(data)
+        rdata = json.dumps({"size": len(y_pred), "data": [np.argmin(x) for x in y_pred]}, cls=NumpyArrayEncoder)
     response_headers = [
         ('Content-type', 'application/json'),
         ('Content-Length', str(len(rdata)))
@@ -100,6 +104,27 @@ def examples(n=1):
     ]
     return Response(response=rdata, status=200, headers=response_headers)
 
+@app.route('/vetter', methods=["POST"])
+def vetter():
+    """
+    JSON Post Payload:
+    { "size": 2,
+      "data": [
+            ['age', 'fnlwgt', 'sex-val', 'education-num', "capital-gain", "capital-loss", "hours-per-week"],
+            ['age', 'fnlwgt', 'sex-val', 'education-num', "capital-gain", "capital-loss", "hours-per-week"]
+        ]
+    }
+    :return:
+    """
+    records = request.get_json()
+    app.logger.debug(records)
+    res = training_data.vet_features(records["data"])
+    rdata = json.dumps(res, cls=NumpyArrayEncoder)
+    response_headers = [
+        ('Content-type', 'application/json'),
+        ('Content-Length', str(len(rdata)))
+    ]
+    return Response(response=rdata, status=200, headers=response_headers)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)

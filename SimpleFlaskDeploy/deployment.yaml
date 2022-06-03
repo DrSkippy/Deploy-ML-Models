@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: model-service
+  labels:
+    app: model-service
+    tier: backend
+    version: v1
+spec:
+  selector:
+    matchLabels:
+      app: model-service
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: model-service
+    spec:
+      containers:
+      - name: model-service
+        image: localhost:32000/model-service
+        ports:
+        - containerPort: 8084
+        env:
+        - name: APP_NAME
+          value: earnings
