@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "timeseriesflaskdeploy"
+version = "0.1.0"
+description = ""
+authors = ["DrSkippy <scott@aspenmesh.io>"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+jupyter = "^1.0.0"
+numpy = "^1.22.4"
+sklearn = "^0.0"
+matplotlib = "^3.5.2"
+prophet = "^1.0.1"
+Flask = "^2.1.2"
+pandas = "^1.4.2"
+uWSGI = "^2.0.20"
+plotly = "^5.8.0"
+salesforce-merlion = "^1.2.0"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
