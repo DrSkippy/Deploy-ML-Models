@@ -7,10 +7,10 @@ import datetime
 import numpy as np
 import pandas as pd
 
-from joblib import load
+from joblib import dump, load
+from prophet import Prophet
 
-import training_data
-import tensorflow as tf
+from training_data import *
 
 # server configuration
 from logging.config import dictConfig
@@ -46,10 +46,24 @@ class NumpyArrayEncoder(json.JSONEncoder):
 
 
 @app.route('/version')
-def configuration():
+def version():
     rdata = json.dumps({
         "version": __version__,
         "date": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M")})
+    response_headers = [
+        ('Content-type', 'application/json'),
+        ('Content-Length', str(len(rdata)))
+    ]
+    return Response(response=rdata, status=200, headers=response_headers)
+
+
+@app.route('/example')
+def example():
+    d, h = get_training_data()
+    rdata = json.dumps({
+        "size": d.shape,
+        "data": d,
+        "header": h}, cls=NumpyArrayEncoder)
     response_headers = [
         ('Content-type', 'application/json'),
         ('Content-Length', str(len(rdata)))
@@ -61,22 +75,34 @@ def configuration():
 def predict():
     """
     JSON Post Payload:
-    { "size": 2,
+    { "size": 4,
       "data": [
-            ['age', 'fnlwgt', 'sex-val', 'education-num', "capital-gain", "capital-loss", "hours-per-week"],
-            ['age', 'fnlwgt', 'sex-val', 'education-num', "capital-gain", "capital-loss", "hours-per-week"]
+            [datetime1],
+            [datetime2],
+            ...
         ]
     }
     :return:
     """
     records = request.get_json()
-    res = training_data.vet_features(records["data"])
+    res = records["data"]
+    periods = int(records["size"])
+    m = load("../data/model.pkl")
+    if len(res) == 0:
+        future = m.make_future_dataframe(periods=periods)
+    forecast = m.predict(future)
+    res = forecast.to_numpy()
+    header = forecast.columns
+    rdata = {
+        "size": res.shape,
+        "data": res,
+        "header": header
+    }
     if len(res["errors"]) > 0:
         rdata = json.dumps(res, cls=NumpyArrayEncoder)
     else:
         df = pd.DataFrame(records["data"], columns=training_data.features)
         model_nn_sc = load("../data/neural_net_scaler.pkl")
-        model_nn = load("../data/neural_net.pkl")
         data = model_nn_sc.transform(df)
         y_pred = model_nn.predict(data)
         rdata = json.dumps({"size": len(y_pred), "data": [np.argmin(x) for x in y_pred]}, cls=NumpyArrayEncoder)
@@ -87,12 +113,26 @@ def predict():
     return Response(response=rdata, status=200, headers=response_headers)
 
 
-@app.route('/example')
-@app.route('/examples/<n>')
-def examples(n=1):
-    n = int(n)
-    assert (n > 0)
-    data = training_data.random_feature_sample_array(n)
+@app.route('/train', methods=['POST'])
+def examples():
+    """
+    JSON Post Payload:
+    { "size": 4,
+      "data": [
+            [datetime1, y1],
+            [datetime2, y2],
+            ...
+        ]
+    }
+    :return:
+    """
+    records = request.get_json()
+    periods = int(records["size"])
+    data = np.array(records["data"])
+    df = pd.DataFrame(data, columns=['ds', 'y'])
+    m = Prophet()
+    m.fit(df)
+    m = dump("../data/model.pkl")
     res = {
         "size": n,
         "data": data
@@ -104,27 +144,6 @@ def examples(n=1):
     ]
     return Response(response=rdata, status=200, headers=response_headers)
 
-@app.route('/vetter', methods=["POST"])
-def vetter():
-    """
-    JSON Post Payload:
-    { "size": 2,
-      "data": [
-            ['age', 'fnlwgt', 'sex-val', 'education-num', "capital-gain", "capital-loss", "hours-per-week"],
-            ['age', 'fnlwgt', 'sex-val', 'education-num', "capital-gain", "capital-loss", "hours-per-week"]
-        ]
-    }
-    :return:
-    """
-    records = request.get_json()
-    app.logger.debug(records)
-    res = training_data.vet_features(records["data"])
-    rdata = json.dumps(res, cls=NumpyArrayEncoder)
-    response_headers = [
-        ('Content-type', 'application/json'),
-        ('Content-Length', str(len(rdata)))
-    ]
-    return Response(response=rdata, status=200, headers=response_headers)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)

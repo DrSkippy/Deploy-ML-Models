@@ -16,6 +16,8 @@ pandas = "^1.4.2"
 uWSGI = "^2.0.20"
 plotly = "^5.8.0"
 salesforce-merlion = "^1.2.0"
+joblib = "^1.1.0"
+requests = "^2.27.1"
 
 [tool.poetry.dev-dependencies]
 
