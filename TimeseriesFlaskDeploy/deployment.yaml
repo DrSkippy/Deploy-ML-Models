@@ -23,4 +23,4 @@ spec:
         - containerPort: 8085
         env:
         - name: APP_NAME
-          value: ts-model-service
+          value: TS-MODEL
