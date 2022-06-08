@@ -3,6 +3,7 @@ __version__ = '0.1.0'
 from flask import Flask, Response, request
 import json
 import datetime
+import time
 
 import numpy as np
 import pandas as pd
@@ -35,6 +36,7 @@ dictConfig({
 })
 
 app = Flask(__name__)
+
 
 @app.route('/version')
 def version():
@@ -107,6 +109,7 @@ def train():
     }
     :return:
     """
+    start_time = time.time()
     records = request.get_json()
     periods = int(records["size"][0])
     vector_length = int(records["size"][1])
@@ -116,8 +119,22 @@ def train():
     m = Prophet()
     m.fit(df)
     dump(m, filename=file_path + "model.pkl")
-    # evaluation
-    df_cv = cross_validation(m, initial='730 days', period='180 days', horizon='365 days')
+    train_time = time.time() - start_time
+    rdata = json.dumps({"size": records["size"], "training_time": train_time})
+    response_headers = [
+        ('Content-type', 'application/json'),
+        ('Content-Length', str(len(rdata)))
+    ]
+    return Response(response=rdata, status=200, headers=response_headers)
+
+
+@app.route('/validation')
+def validation():
+    """
+    :return:
+    """
+    m = load(file_path + "model.pkl")
+    df_cv = cross_validation(m, initial='730 days', period='365 days', horizon = '365 days')
     df_p = performance_metrics(df_cv)
     rdata = df_p.to_json()
     response_headers = [
