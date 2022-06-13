@@ -133,10 +133,13 @@ def validation():
     """
     :return:
     """
+    start_time = time.time()
     m = load(file_path + "model.pkl")
-    df_cv = cross_validation(m, initial='730 days', period='365 days', horizon = '365 days')
+    df_cv = cross_validation(m, initial='730 days', period='365 days', horizon='365 days')
     df_p = performance_metrics(df_cv)
-    rdata = df_p.to_json()
+    train_time = time.time() - start_time
+    rdata = json.dumps({"data": "XJSONX", "training_time": train_time})
+    rdata = rdata.replace('"XJSONX"', df_p.to_json())
     response_headers = [
         ('Content-type', 'application/json'),
         ('Content-Length', str(len(rdata)))
