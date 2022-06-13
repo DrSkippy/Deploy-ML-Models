@@ -1,15 +1,9 @@
 __version__ = '0.2.1'
 
-from flask import Flask, Response, request
-import json
-import datetime
 import time
-from hashlib import sha512
 
-import numpy as np
-import pandas as pd
-
-from joblib import dump, load
+from flask import Flask, Response, request
+from logging.config import dictConfig
 
 from prophet import Prophet
 from prophet.diagnostics import performance_metrics
@@ -17,9 +11,6 @@ from prophet.diagnostics import cross_validation
 
 # data management utilities
 from training_data import *
-
-# server configuration
-from logging.config import dictConfig
 
 dictConfig({
     'version': 1,
@@ -64,27 +55,24 @@ def train():
     }
     :return: {'size': [2905, 2], 'training_time': 1.189, 'model_id': 'd61743627c2fb7f55fe1f7544ef887ced5e7141e'}
     """
-    start_time = time.time()        # Time training and log it
-    records = request.get_json()    # get the input parameters
+    records = request.get_json()  # get the input parameters
     periods = int(records["size"][0])
-    assert (periods > 0)            # much too forgiving!
+    assert (periods > 0)  # much too forgiving!
     vector_length = int(records["size"][1])
     assert (vector_length == 2)
     data = np.array(records["data"])
+    start_time = time.time()  # Time training and log it
     # create training data frame
     df = pd.DataFrame(data, columns=['ds', 'y'])
-    m = Prophet()       # model
-    m.fit(df)           # model fit
+    m = Prophet()  # model
+    m.fit(df)  # model fit
+    train_time = time.time() - start_time
     # keep track of the id of the model that we fit so the correct model is used
     # for validation and predictions!
-    _tmp_string = str(records["size"]) + str(datetime.datetime.now())
-    model_id = sha512(_tmp_string.encode("ascii", errors="ignore")).hexdigest()[:40]
-    # save the model for later use
-    dump(m, filename=file_path + model_id + ".pkl")
-    train_time = time.time() - start_time
+    model_id = persist_model(m)
     rdata = json.dumps({
         "size": records["size"],
-        "training_time": round(train_time,3),
+        "training_time": round(train_time, 3),
         "model_id": model_id})
     app.logger.info(f"model_id = {model_id} trained in {train_time} sec")
     response_headers = [
@@ -92,6 +80,7 @@ def train():
         ('Content-Length', str(len(rdata)))
     ]
     return Response(response=rdata, status=200, headers=response_headers)
+
 
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -111,7 +100,7 @@ def predict():
     res = np.array(records["data"])
     periods = int(records["size"])
     model_id = records["model_id"]
-    m = load(file_path + model_id + ".pkl")
+    m = get_model(model_id)
     if len(res) == 0:
         future = m.make_future_dataframe(periods=periods)
     forecast = m.predict(future)
@@ -120,7 +109,7 @@ def predict():
         "data": forecast.to_numpy(),
         "header": forecast.columns,
         "model_id": model_id
-        }, cls = NumpyArrayEncoder)
+    }, cls=NumpyArrayEncoder)
     response_headers = [
         ('Content-type', 'application/json'),
         ('Content-Length', str(len(rdata)))
@@ -133,9 +122,9 @@ def validation(model_id):
     """
     :return:
     """
+    m = get_model(model_id)
     start_time = time.time()
-    m = load(file_path + model_id + ".pkl")
-    df_cv = cross_validation(m, initial='1095 days', period='365 days', horizon='365 days')
+    df_cv = cross_validation(m, initial='1460 days', period='365 days', horizon='365 days')
     df_p = performance_metrics(df_cv)
     train_time = time.time() - start_time
     rdata = json.dumps({"data": "XJSONX", "training_time": train_time, "model_id": model_id})

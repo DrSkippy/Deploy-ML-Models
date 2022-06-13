@@ -22,5 +22,12 @@ spec:
         ports:
         - containerPort: 8085
         env:
-        - name: APP_NAME
-          value: TS-MODEL
+          - name: APP_NAME
+            value: TS-MODEL
+        volumeMounts:
+          - mountPath: "/cache/model-storage"
+            name: model-storage
+      volumes:
+      - name: model-storage
+        persistentVolumeClaim:
+          claimName: model-storage-claim

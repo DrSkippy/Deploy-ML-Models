@@ -1,16 +1,27 @@
 import csv
 import json
+import datetime
+import os
+
 
 import pandas as pd
 import numpy as np
 
-file_path = "../data/"
-# file_path = "./data/"    # useful for some local testing
-dfile = file_path + "example_wp_log_peyton_manning.csv"
+from joblib import dump, load
+from hashlib import sha512
+
+app_name = os.getenv("APP-NAME")
+if app_name == "TS-MODEL":
+    model_pickle_path = "/cache/model-storage/"      # path of outputs of training models
+else:
+    model_pickle_path = "../pickles/"  # path of outputs of training models
+
+example_data_file_path = "../data/"  # relative to python package
+data_filename = example_data_file_path + "example_wp_log_peyton_manning.csv"
 
 
 def get_training_data():
-    with open(dfile, "r") as infile:
+    with open(data_filename, "r") as infile:
         rdr = csv.reader(infile)
         first = True
         data = []
@@ -22,6 +33,19 @@ def get_training_data():
                 data.append(r)
         data = np.array(data)
         return data, header
+
+
+def persist_model(model):
+    _tmp_string = "time_series_model" + str(datetime.datetime.now())
+    model_id = sha512(_tmp_string.encode("ascii", errors="ignore")).hexdigest()[:40]
+    # save the model for later use
+    dump(model, filename=model_pickle_path + model_id + ".pkl")
+    return model_id
+
+
+def get_model(model_id):
+    model = load(model_pickle_path + model_id + ".pkl")
+    return model
 
 
 class NumpyArrayEncoder(json.JSONEncoder):
