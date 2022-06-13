@@ -27,3 +27,10 @@ python = ">=3.10,<3.11"
 
 Isn't straight forward at all...
 
+
+microk8s.kubectl apply -f deployment.yaml 
+cd raspberry-pi-k8s-experiments/
+cd microk8s-ingress-example/
+vim ingress.yml 
+microk8s.kubectl apply -f ingress.yml 
+microk8s.kubectl expose deployment earnings-model-service --type=LoadBalancer --port=8080
