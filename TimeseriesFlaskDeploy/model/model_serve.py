@@ -1,4 +1,4 @@
-__version__ = '0.1.0'
+__version__ = '0.1.2'
 
 from flask import Flask, Response, request
 import json
@@ -69,6 +69,7 @@ def predict():
     """
     JSON Post Payload:
     { "size": 4,
+      "model_id": "asd98f7a9s8df79ads",
       "data": [
             [datetime1],
             [datetime2],
@@ -80,18 +81,20 @@ def predict():
     records = request.get_json()
     res = np.array(records["data"])
     periods = int(records["size"])
-    m = load(file_path + "model.pkl")
+    model_id = records["model_id"]
+    m = load(file_path + model_id + ".pkl")
     if len(res) == 0:
         future = m.make_future_dataframe(periods=periods)
     forecast = m.predict(future)
     rdata = json.dumps({
         "size": forecast.shape,
         "data": forecast.to_numpy(),
-        "header": forecast.columns
-    }, cls=NumpyArrayEncoder)
+        "header": forecast.columns,
+        "model_id": model_id}
+    }, cls = NumpyArrayEncoder)
     response_headers = [
-        ('Content-type', 'application/json'),
-        ('Content-Length', str(len(rdata)))
+    ('Content-type', 'application/json'),
+    ('Content-Length', str(len(rdata)))
     ]
     return Response(response=rdata, status=200, headers=response_headers)
 
@@ -118,9 +121,13 @@ def train():
     df = pd.DataFrame(data, columns=['ds', 'y'])
     m = Prophet()
     m.fit(df)
-    dump(m, filename=file_path + "model.pkl")
+    model_id = hash(str(records["size"]) + datetime.datetime.now())
+    dump(m, filename=file_path + model_id + ".pkl")
     train_time = time.time() - start_time
-    rdata = json.dumps({"size": records["size"], "training_time": train_time})
+    rdata = json.dumps({
+        "size": records["size"],
+        "training_time": train_time,
+        "model_id": model_id})
     response_headers = [
         ('Content-type', 'application/json'),
         ('Content-Length', str(len(rdata)))
@@ -128,17 +135,17 @@ def train():
     return Response(response=rdata, status=200, headers=response_headers)
 
 
-@app.route('/validation')
-def validation():
+@app.route('/validation/<model_id>')
+def validation(model_id):
     """
     :return:
     """
     start_time = time.time()
-    m = load(file_path + "model.pkl")
+    m = load(file_path + model_id + ".pkl")
     df_cv = cross_validation(m, initial='1095 days', period='365 days', horizon='180 days')
     df_p = performance_metrics(df_cv)
     train_time = time.time() - start_time
-    rdata = json.dumps({"data": "XJSONX", "training_time": train_time})
+    rdata = json.dumps({"data": "XJSONX", "training_time": train_time, "model_id": model_id})
     rdata = rdata.replace('"XJSONX"', df_p.to_json())
     response_headers = [
         ('Content-type', 'application/json'),
