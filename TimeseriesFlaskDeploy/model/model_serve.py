@@ -121,7 +121,7 @@ def train():
     df = pd.DataFrame(data, columns=['ds', 'y'])
     m = Prophet()
     m.fit(df)
-    model_id = hash(str(records["size"]) + datetime.datetime.now())
+    model_id = hash(str(records["size"]) + str(datetime.datetime.now()))
     dump(m, filename=file_path + model_id + ".pkl")
     train_time = time.time() - start_time
     rdata = json.dumps({
