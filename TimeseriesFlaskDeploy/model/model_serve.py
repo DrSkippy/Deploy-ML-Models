@@ -135,7 +135,7 @@ def validation(model_id):
     """
     start_time = time.time()
     m = load(file_path + model_id + ".pkl")
-    df_cv = cross_validation(m, initial='1095 days', period='365 days', horizon='180 days')
+    df_cv = cross_validation(m, initial='1095 days', period='365 days', horizon='365 days')
     df_p = performance_metrics(df_cv)
     train_time = time.time() - start_time
     rdata = json.dumps({"data": "XJSONX", "training_time": train_time, "model_id": model_id})
