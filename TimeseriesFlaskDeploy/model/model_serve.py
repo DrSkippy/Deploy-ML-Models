@@ -90,7 +90,7 @@ def predict():
         "size": forecast.shape,
         "data": forecast.to_numpy(),
         "header": forecast.columns,
-        "model_id": model_id}
+        "model_id": model_id
     }, cls = NumpyArrayEncoder)
     response_headers = [
     ('Content-type', 'application/json'),
