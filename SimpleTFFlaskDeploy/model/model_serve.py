@@ -10,7 +10,7 @@ import pandas as pd
 from joblib import load
 
 import training_data
-import tensorflow as tf
+#import tensorflow as tf
 
 # server configuration
 from logging.config import dictConfig
@@ -75,11 +75,13 @@ def predict():
         rdata = json.dumps(res, cls=NumpyArrayEncoder)
     else:
         df = pd.DataFrame(records["data"], columns=training_data.features)
-        model_nn_sc = load("../data/neural_net_scaler.pkl")
-        model_nn = load("../data/neural_net.pkl")
-        data = model_nn_sc.transform(df)
-        y_pred = model_nn.predict(data)
-        rdata = json.dumps({"size": len(y_pred), "data": [np.argmin(x) for x in y_pred]}, cls=NumpyArrayEncoder)
+        model = load("../data/decision_tree.pkl")
+        #model_nn_sc = load("../data/neural_net_scaler.pkl")
+        #model = load("../data/neural_net.pkl")
+        #data = model_nn_sc.transform(df)
+        y_pred = model.predict(df)
+        #rdata = json.dumps({"size": len(y_pred), "data": [np.argmin(x) for x in y_pred]}, cls=NumpyArrayEncoder)
+        rdata = json.dumps({"size": len(y_pred), "data": [1 if ">" in x else 0 for x in y_pred]}, cls=NumpyArrayEncoder)
     response_headers = [
         ('Content-type', 'application/json'),
         ('Content-Length', str(len(rdata)))

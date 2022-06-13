@@ -124,7 +124,7 @@ def validation(model_id):
     """
     m = get_model(model_id)
     start_time = time.time()
-    df_cv = cross_validation(m, initial='1460 days', period='365 days', horizon='365 days')
+    df_cv = cross_validation(m, initial='1825 days', period='365 days', horizon='365 days')
     df_p = performance_metrics(df_cv)
     train_time = time.time() - start_time
     rdata = json.dumps({"data": "XJSONX", "training_time": train_time, "model_id": model_id})
