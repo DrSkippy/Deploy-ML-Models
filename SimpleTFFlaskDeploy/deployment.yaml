@@ -18,9 +18,9 @@ spec:
     spec:
       containers:
       - name: model-service
-        image: localhost:32000/earnings-model-service
+        image: localhost:32000/earnings-model-server
         ports:
-        - containerPort: 8084
+        - containerPort: 8080
         env:
         - name: APP_NAME
           value: EARNINGS
