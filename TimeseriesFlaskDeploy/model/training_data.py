@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 
 file_path = "../data/"
-#file_path = "./data/"
+# file_path = "./data/"    # useful for some local testing
 dfile = file_path + "example_wp_log_peyton_manning.csv"
 
 

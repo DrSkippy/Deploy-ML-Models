@@ -1,9 +1,10 @@
-__version__ = '0.1.2'
+__version__ = '0.2.1'
 
 from flask import Flask, Response, request
 import json
 import datetime
 import time
+from hashlib import sha512
 
 import numpy as np
 import pandas as pd
@@ -50,19 +51,47 @@ def version():
     return Response(response=rdata, status=200, headers=response_headers)
 
 
-@app.route('/example')
-def example():
-    d, h = get_training_data()
+@app.route('/train', methods=['POST'])
+def train():
+    """
+    JSON Post Payload:
+    { "size": 4,
+      "data": [
+            [datetime1, y1],
+            [datetime2, y2],
+            ...
+        ]
+    }
+    :return: {'size': [2905, 2], 'training_time': 1.189, 'model_id': 'd61743627c2fb7f55fe1f7544ef887ced5e7141e'}
+    """
+    start_time = time.time()        # Time training and log it
+    records = request.get_json()    # get the input parameters
+    periods = int(records["size"][0])
+    assert (periods > 0)            # much too forgiving!
+    vector_length = int(records["size"][1])
+    assert (vector_length == 2)
+    data = np.array(records["data"])
+    # create training data frame
+    df = pd.DataFrame(data, columns=['ds', 'y'])
+    m = Prophet()       # model
+    m.fit(df)           # model fit
+    # keep track of the id of the model that we fit so the correct model is used
+    # for validation and predictions!
+    _tmp_string = str(records["size"]) + str(datetime.datetime.now())
+    model_id = sha512(_tmp_string.encode("ascii", errors="ignore")).hexdigest()[:40]
+    # save the model for later use
+    dump(m, filename=file_path + model_id + ".pkl")
+    train_time = time.time() - start_time
     rdata = json.dumps({
-        "size": d.shape,
-        "data": d,
-        "header": h}, cls=NumpyArrayEncoder)
+        "size": records["size"],
+        "training_time": round(train_time,3),
+        "model_id": model_id})
+    app.logger.info(f"model_id = {model_id} trained in {train_time} sec")
     response_headers = [
         ('Content-type', 'application/json'),
         ('Content-Length', str(len(rdata)))
     ]
     return Response(response=rdata, status=200, headers=response_headers)
-
 
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -91,43 +120,7 @@ def predict():
         "data": forecast.to_numpy(),
         "header": forecast.columns,
         "model_id": model_id
-    }, cls = NumpyArrayEncoder)
-    response_headers = [
-    ('Content-type', 'application/json'),
-    ('Content-Length', str(len(rdata)))
-    ]
-    return Response(response=rdata, status=200, headers=response_headers)
-
-
-@app.route('/train', methods=['POST'])
-def train():
-    """
-    JSON Post Payload:
-    { "size": 4,
-      "data": [
-            [datetime1, y1],
-            [datetime2, y2],
-            ...
-        ]
-    }
-    :return:
-    """
-    start_time = time.time()
-    records = request.get_json()
-    periods = int(records["size"][0])
-    vector_length = int(records["size"][1])
-    assert (vector_length == 2)
-    data = np.array(records["data"])
-    df = pd.DataFrame(data, columns=['ds', 'y'])
-    m = Prophet()
-    m.fit(df)
-    model_id = hash(str(records["size"]) + str(datetime.datetime.now()))
-    dump(m, filename=file_path + model_id + ".pkl")
-    train_time = time.time() - start_time
-    rdata = json.dumps({
-        "size": records["size"],
-        "training_time": train_time,
-        "model_id": model_id})
+        }, cls = NumpyArrayEncoder)
     response_headers = [
         ('Content-type', 'application/json'),
         ('Content-Length', str(len(rdata)))
@@ -147,6 +140,20 @@ def validation(model_id):
     train_time = time.time() - start_time
     rdata = json.dumps({"data": "XJSONX", "training_time": train_time, "model_id": model_id})
     rdata = rdata.replace('"XJSONX"', df_p.to_json())
+    response_headers = [
+        ('Content-type', 'application/json'),
+        ('Content-Length', str(len(rdata)))
+    ]
+    return Response(response=rdata, status=200, headers=response_headers)
+
+
+@app.route('/example')
+def example():
+    d, h = get_training_data()
+    rdata = json.dumps({
+        "size": d.shape,
+        "data": d,
+        "header": h}, cls=NumpyArrayEncoder)
     response_headers = [
         ('Content-type', 'application/json'),
         ('Content-Length', str(len(rdata)))
