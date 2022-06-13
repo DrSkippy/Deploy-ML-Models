@@ -10,7 +10,7 @@ import numpy as np
 from joblib import dump, load
 from hashlib import sha512
 
-app_name = os.getenv("APP-NAME")
+app_name = os.getenv("APP_NAME")
 if app_name == "TS-MODEL":
     model_pickle_path = "/cache/model-storage/"      # path of outputs of training models
 else:
