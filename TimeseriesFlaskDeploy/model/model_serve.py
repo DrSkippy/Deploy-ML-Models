@@ -61,6 +61,10 @@ def train():
     vector_length = int(records["size"][1])
     assert (vector_length == 2)
     data = np.array(records["data"])
+    # TODO:
+    # Train should save a data sample from training if
+    # we want the example endpoint to work in the context of
+    # specific model?
     start_time = time.time()  # Time training and log it
     # create training data frame
     df = pd.DataFrame(data, columns=['ds', 'y'])
@@ -74,7 +78,7 @@ def train():
         "size": records["size"],
         "training_time": round(train_time, 3),
         "model_id": model_id})
-    app.logger.info(f"model_id = {model_id} trained in {train_time} sec")
+    app.logger.info(f"model_server version = {__version__} model_id = {model_id} trained in {train_time} sec")
     response_headers = [
         ('Content-type', 'application/json'),
         ('Content-Length', str(len(rdata)))
@@ -110,6 +114,7 @@ def predict():
         "header": forecast.columns,
         "model_id": model_id
     }, cls=NumpyArrayEncoder)
+    app.logger.info(f"model_server version = {__version__} model_id = {model_id} predicted {periods} periods")
     response_headers = [
         ('Content-type', 'application/json'),
         ('Content-Length', str(len(rdata)))
@@ -129,6 +134,7 @@ def validation(model_id):
     train_time = time.time() - start_time
     rdata = json.dumps({"data": "XJSONX", "training_time": train_time, "model_id": model_id})
     rdata = rdata.replace('"XJSONX"', df_p.to_json())
+    app.logger.info(f"model_server version = {__version__} model_id = {model_id} cross-validation in {train_time} s")
     response_headers = [
         ('Content-type', 'application/json'),
         ('Content-Length', str(len(rdata)))
