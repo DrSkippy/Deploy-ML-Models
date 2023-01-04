@@ -23,10 +23,21 @@ K8S Deploy
 docker build -t localhost:32000/load-model-service .
 docker push localhost:32000/load-model-service
 microk8s.kubectl apply -f deployment.yaml
+microk8s.kubectl expose deployment load-model-service --type=LoadBalancer --port=8080
 ```
 
 Client
 
 ```yaml
 poetry run python bin/client.py
+```
+
+
+Prometheus
+
+```yaml
+http://192.168.127.7/prom/graph
+rate(container_cpu_usage_seconds_total{container="model-service"}[1m])
+container_memory_usage_bytes{container="model-service"}
+
 ```

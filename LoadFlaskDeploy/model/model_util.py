@@ -4,7 +4,7 @@ import psutil
 import time
 
 const_float = 0.346723846287346
-LOAD_CALIBRATION_SCALE = 170000
+LOAD_CALIBRATION_SCALE = 15000
 
 
 def load_function(n=1):

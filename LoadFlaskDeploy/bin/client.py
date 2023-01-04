@@ -4,10 +4,11 @@ import csv
 import sys
 
 input_parameters_template = {
-    "memory_request": 3200,
-    "load_request": 30
+    "memory_request": 1500,
+    "load_request": 3
 }
 
+n = 1000
 
 def flatten_json(y):
     out = {}
@@ -45,9 +46,10 @@ field_names = [
 ]
 url = "http://localhost:5000"
 url = "http://localhost"
+url = "http://192.168.127.8/load-model/"
 
 writer = csv.DictWriter(sys.stdout, fieldnames=field_names)
-for i in range(100):
+for i in range(n):
     start_time = time.time()
     r = requests.post(url, json=input_parameters_template)
     client_latency_ms = 1000. * (time.time() - start_time)
