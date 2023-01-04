@@ -4,8 +4,8 @@ import csv
 import sys
 
 input_parameters_template = {
-    "memory_request": 1500,
-    "load_request": 3
+    "memory_request": 150,
+    "load_request": 6
 }
 
 n = 1000

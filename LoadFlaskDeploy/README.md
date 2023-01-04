@@ -24,6 +24,7 @@ docker build -t localhost:32000/load-model-service .
 docker push localhost:32000/load-model-service
 microk8s.kubectl apply -f deployment.yaml
 microk8s.kubectl expose deployment load-model-service --type=LoadBalancer --port=8080
+kubectl rollout restart deployment/load-model-service
 ```
 
 Client
