@@ -1,4 +1,5 @@
-import os
+import numpy as np
+import pandas as pd
 import time
 from datetime import datetime
 
@@ -13,6 +14,15 @@ def query_prometheus(query: str, at: int = None):
         at = int(time.time())
     response = requests.post(promscale_query_url, data={'query': query, 'time': at})
     return response.json()
+
+def prometheus_vector_series(response_dict):
+    res = {}
+    for metric_dict in response_dict["data"]["result"]:
+        key = metric_dict["metric"]["pod"]
+        values = np.array(metric_dict["values"], dtype=np.float64)
+        print(values, values.shape)
+        res[key] = pd.DataFrame(values, columns=["timestamp", "value"])
+    return res
 
 def build_prometheus_plain_metric(name: str, value: float, labels: dict[str, str], type: str = "gauge", at: int = None):
     metric = f'# TYPE {name} {type}\n{name}'
