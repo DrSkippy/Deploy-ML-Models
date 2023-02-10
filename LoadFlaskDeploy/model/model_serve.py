@@ -4,6 +4,7 @@ import datetime
 import json
 import numpy as np
 import psutil
+import os
 import time
 import uuid
 from flask import Flask, Response, request, send_file
@@ -14,6 +15,8 @@ from prometheus_flask_exporter.multiprocess import UWsgiPrometheusMetrics
 
 import model_util as mu
 
+
+HOSTNAME = os.environ("HOSTNAME")
 ds = mu.DelayStrategy(200)  # const 200 ms sleep
 
 dictConfig({
@@ -74,6 +77,7 @@ def main():
     function_latency_ms = (end_time - start_time) * 1000.  # ms
     # create the response record
     response = {
+        "hostname": HOSTNAME,
         "uuid": uid,
         "start_time_sec": start_time,
         "function_latency_ms": function_latency_ms,
