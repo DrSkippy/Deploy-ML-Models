@@ -16,7 +16,7 @@ from prometheus_flask_exporter.multiprocess import UWsgiPrometheusMetrics
 import model_util as mu
 
 
-HOSTNAME = os.environ("HOSTNAME")
+HOSTNAME = os.environ.get("HOSTNAME")
 ds = mu.DelayStrategy(200)  # const 200 ms sleep
 
 dictConfig({

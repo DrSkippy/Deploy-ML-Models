@@ -32,6 +32,7 @@ def flatten_json(y):
 
 
 field_names = [
+    'response_hostname',
     'client_latency_ms',
     'version', 'date',
     'response_uuid',
@@ -52,6 +53,7 @@ writer = csv.DictWriter(sys.stdout, fieldnames=field_names)
 for i in range(n):
     start_time = time.time()
     r = requests.post(url, json=input_parameters_template)
+    print(r)
     client_latency_ms = 1000. * (time.time() - start_time)
     record = flatten_json(r.json())
     record["client_latency_ms"] = client_latency_ms
