@@ -2,13 +2,15 @@ import requests
 import time
 import csv
 import sys
+import json
+import uuid
 
 input_parameters_template = {
-    "memory_request": 150,
-    "load_request": 6
+    "memory_request": 250,
+    "load_request": 10
 }
 
-n = 1000
+n = 1000 * 7
 
 def flatten_json(y):
     out = {}
@@ -50,10 +52,17 @@ url = "http://localhost"
 url = "http://192.168.127.8/load-model/"
 
 writer = csv.DictWriter(sys.stdout, fieldnames=field_names)
+codes = {}
 for i in range(n):
     start_time = time.time()
     r = requests.post(url, json=input_parameters_template)
     client_latency_ms = 1000. * (time.time() - start_time)
-    record = flatten_json(r.json())
-    record["client_latency_ms"] = client_latency_ms
-    writer.writerow(record)
+    if r.status_code >= 200 and r.status_code < 300:
+        record = flatten_json(r.json())
+        record["client_latency_ms"] = client_latency_ms
+        writer.writerow(record)
+    codes[r.status_code] = codes.get(r.status_code, 0) + 1
+
+with open(f"./data/{uuid.uuid4()}.json", "w") as ofile:
+    json.dump(codes, ofile)
+    ofile.write("\n")

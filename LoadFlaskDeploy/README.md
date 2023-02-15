@@ -27,6 +27,11 @@ microk8s.kubectl expose deployment load-model-service --type=LoadBalancer --port
 kubectl rollout restart deployment/load-model-service
 ```
 
+Change Replica Count
+```yaml
+microk8s.kubectl scale --replicas=4 deployment load-model-service 
+```
+
 Client
 
 ```yaml
