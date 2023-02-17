@@ -22,10 +22,11 @@ field_names = [
 base_data = "/Users/s.hendrickson/Working/Deploy-ML-Models/LoadFlaskDeploy/data"
 
 experiments = [
-    "2023-02-14_2-replicas",
-    "2023-02-14_3-replicas",
-    "2023-02-13_4-replicas",
-    "2023-02-13_5-replicas"
+    "2023-02-15_2-replicas",
+    "2023-02-15_3-replicas",
+    "2023-02-16_4-replicas",
+    "2023-02-16_5-replicas",
+    "2023-02-16_6-replicas"
 ]
 
 client_data_file = "consolidated_client.csv"

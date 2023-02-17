@@ -38,6 +38,11 @@ Client
 poetry run python bin/client.py
 ```
 
+### Experiments
+
+```yaml
+runner.zsh
+```
 
 Prometheus
 

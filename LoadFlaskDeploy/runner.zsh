@@ -1,35 +1,50 @@
 echo "Starting and experiment..."
+START="$(date +%s)"
 
-fn=2023-02-15_test
-sleeptime=601
+ce="2023-02-17_4-replicas"
+directory="./data/${ce}"
+if [ ! -d ${directory} ]; then
+  mkdir ${directory}
+  echo "Created directory for experiment ${directory} ..."
+else
+  echo "Experiment already exists, not overwriting!"
+  exit 1
+fi
 
+fn="2023-02-16_test"
+sleeptime=300
+PROCS=12
+
+echo "Starting a new process 1 of ${PROCS} ..."
 nohup poetry run python bin/client.py > ./data/${fn}1.csv &
 
-echo "Sleeping for 10 m"
+for ((i = 2; i < $PROCS; i++)); do
+  echo "Sleeping for 5 min"
+  sleep $sleeptime
+
+  echo "Starting a new process ${i} of ${PROCS} ..."
+  nohup poetry run python bin/client.py > ./data/${fn}${i}.csv &
+done
+
+echo "Sleeping for 5 min"
 sleep $sleeptime
 
-echo "Starting a new process..."
-nohup poetry run python bin/client.py > ./data/${fn}2.csv &
-
-echo "Sleeping for 10 m"
-sleep $sleeptime
-
-echo "Starting a new process..."
-nohup poetry run python bin/client.py > ./data/${fn}3.csv &
-
-echo "Sleeping for 10 m"
-sleep $sleeptime
-
-echo "Starting a new process..."
-nohup poetry run python bin/client.py > ./data/${fn}4.csv &
-
-echo "Sleeping for 10 m"
-sleep $sleeptime
-
-echo "Starting a new process..."
-poetry run python bin/client.py > ./data/${fn}5.csv
+echo "Starting a new process ${PROCS} of ${PROCS}..."
+nohup poetry run python bin/client.py > ./data/${fn}${PROCS}.csv
 
 cat ./data/${fn}*.csv | sort > ./data/consolidated_client.csv
-cat ./data/consolidated_client.csv | cut -f 1 -d, | sort | uniq > ./data/pods.csv
+echo "Total requests processed: $(wc -l ./data/consolidated_client.csv)"
 
-echo "Done!"
+cat ./data/consolidated_client.csv | cut -f 1 -d, | sort | uniq > ./data/pods.csv
+echo "Number of replicas: $(wc -l ./data/pods.csv)"
+
+DURATION=$[ $(date +%s) - ${START} ]
+
+echo "Persisting prometheus data..."
+poetry run python bin/persist_prometheus.py ${ce} ${DURATION}
+
+echo "Moving outputs to experiment directory ${directory} ..."
+mv ./data/*.csv ${directory}
+mv ./data/*.json ${directory}
+
+echo "Experiment ${ce} done in ${DURATION} seconds!"

@@ -5,12 +5,16 @@ import sys
 import json
 import uuid
 
+import model.model_util as mu
+
+ds = mu.NormalDelayStrategy(mu=700, sigma=300)  # const 200 ms sleep
+
 input_parameters_template = {
     "memory_request": 250,
     "load_request": 10
 }
 
-n = 1000 * 7
+n = 5000
 
 def flatten_json(y):
     out = {}
@@ -47,8 +51,9 @@ field_names = [
     'response_load_request',
     'response_load_calibration'
 ]
-url = "http://localhost:5000"
-url = "http://localhost"
+
+# url = "http://localhost:5000"
+# url = "http://localhost"
 url = "http://192.168.127.8/load-model/"
 
 writer = csv.DictWriter(sys.stdout, fieldnames=field_names)
@@ -62,6 +67,8 @@ for i in range(n):
         record["client_latency_ms"] = client_latency_ms
         writer.writerow(record)
     codes[r.status_code] = codes.get(r.status_code, 0) + 1
+    _ = ds.sleep() # Use a random delay after request is processed to break
+                   # resonances in request times when running multiple clients
 
 with open(f"./data/{uuid.uuid4()}.json", "w") as ofile:
     json.dump(codes, ofile)
