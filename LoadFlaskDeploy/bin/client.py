@@ -14,7 +14,7 @@ input_parameters_template = {
     "load_request": 10
 }
 
-n = 5000
+n = 4000
 
 def flatten_json(y):
     out = {}

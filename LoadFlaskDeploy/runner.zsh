@@ -1,7 +1,7 @@
 echo "Starting and experiment..."
 START="$(date +%s)"
 
-ce="2023-02-17_4-replicas"
+ce="2023-02-20_5-replicas"
 directory="./data/${ce}"
 if [ ! -d ${directory} ]; then
   mkdir ${directory}
@@ -11,22 +11,22 @@ else
   exit 1
 fi
 
-fn="2023-02-16_test"
-sleeptime=300
+fn="2023-02-29_test"
+sleeptime=400
 PROCS=12
 
 echo "Starting a new process 1 of ${PROCS} ..."
 nohup poetry run python bin/client.py > ./data/${fn}1.csv &
 
 for ((i = 2; i < $PROCS; i++)); do
-  echo "Sleeping for 5 min"
+  echo "Sleeping for ${sleeptime} seconds..."
   sleep $sleeptime
 
   echo "Starting a new process ${i} of ${PROCS} ..."
   nohup poetry run python bin/client.py > ./data/${fn}${i}.csv &
 done
 
-echo "Sleeping for 5 min"
+echo "Sleeping for ${sleeptime} seconds..."
 sleep $sleeptime
 
 echo "Starting a new process ${PROCS} of ${PROCS}..."

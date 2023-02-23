@@ -1,4 +1,4 @@
-FROM python:3.9.15
+FROM python:3.10.9
 RUN apt update && apt upgrade -y
 
 ENV APP /model
