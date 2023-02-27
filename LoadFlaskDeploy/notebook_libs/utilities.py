@@ -22,19 +22,26 @@ field_names = [
 base_data = "/Users/s.hendrickson/Working/Deploy-ML-Models/LoadFlaskDeploy/data"
 
 experiments = [
-    "2023-02-15_2-replicas",
-    "2023-02-16_4-replicas",
-    "2023-02-16_6-replicas",
     "2023-02-17_3-replicas",
+    "2023-02-17_4-replicas",
     "2023-02-17_5-replicas",
     "2023-02-19_2-replicas",
-    "2023-02-20_5-replicas",
-    "2023-02-15_3-replicas",
-    "2023-02-16_5-replicas",
-    "2023-02-16_6-replicas-2",
-    "2023-02-17_4-replicas",
     "2023-02-18_3-replicas",
-    "2023-02-19_4-replicas"
+    "2023-02-19_4-replicas",
+    "2023-02-20_5-replicas",
+    "2023-02-24_2-replicas",
+    "2023-02-24_3-replicas",
+    "2023-02-24_4-replicas",
+    "2023-02-24_5-replicas",
+    "2023-02-24_6-replicas",
+    "2023-02-25_2-replicas",
+    "2023-02-25_3-replicas",
+    "2023-02-25_4-replicas",
+    "2023-02-25_5-replicas",
+    "2023-02-25_6-replicas",
+    "2023-02-26_2-replicas",
+    "2023-02-26_3-replicas",
+    "2023-02-26_4-replicas"
 ]
 
 client_data_file = "consolidated_client.csv"
@@ -182,4 +189,10 @@ def combined_data_set(current_experiment):
 
     df = df.join(df_client)
     df["replicas"] = len(read_pod_id_list(current_experiment))
+    return df
+
+def combined_data_sets():
+    dfs = [combined_data_set(ce) for ce in experiments]
+    df = pd.concat(dfs, axis=0)
+    df = df.dropna()
     return df
