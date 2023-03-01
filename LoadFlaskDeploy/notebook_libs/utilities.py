@@ -19,9 +19,32 @@ field_names = [
     'response_load_calibration'
 ]
 
+field_names_std = [
+    'response_hostname',
+    'client_latency_ms',
+    'version', 'date',
+    'response_uuid',
+    'response_start_time_sec',
+    'response_function_latency_ms',
+    'response_memory_request',
+    'response_memory_usage_mb',
+    'response_sleep_delay_ms',
+    'response_load_time_ms',
+    'response_load_request',
+    'response_load_calibration',
+    'response_memory_request_std',
+    'response_load_request_std'
+]
+
 base_data = "/Users/s.hendrickson/Working/Deploy-ML-Models/LoadFlaskDeploy/data"
 
-experiments = [
+all_experiments = [x for x in os.listdir(base_data) if "replicas" in x]
+
+"""
+find . -name '*test1.csv' | grep replicas  | xargs -I inf sh -c 'echo inf; head -n1 inf' | cut -d, -f8,12 \
+       | paste -d " " - - | sort | sed 's/ /,/g'
+"""
+experiments_10_250 = [
     "2023-02-17_3-replicas",
     "2023-02-17_4-replicas",
     "2023-02-17_5-replicas",
@@ -34,14 +57,29 @@ experiments = [
     "2023-02-24_4-replicas",
     "2023-02-24_5-replicas",
     "2023-02-24_6-replicas",
+    "2023-02-27_2-replicas",
+    "2023-02-27_3-replicas",
+    "2023-02-27_4-replicas",
+    "2023-02-27_5-replicas",
+    "2023-02-27_6-replicas",
+    "2023-02-28_2-replicas",
+    "2023-02-28_3-replicas",
+    "2023-02-28_4-replicas"
+]
+experiments_10_350 = [
+    "2023-02-26_2-replicas",
+    "2023-02-26_3-replicas",
+    "2023-02-26_4-replicas",
+    "2023-02-26_5-replicas",
+    "2023-02-26_6-replicas"
+]
+
+experiments_20_250 = [
     "2023-02-25_2-replicas",
     "2023-02-25_3-replicas",
     "2023-02-25_4-replicas",
     "2023-02-25_5-replicas",
-    "2023-02-25_6-replicas",
-    "2023-02-26_2-replicas",
-    "2023-02-26_3-replicas",
-    "2023-02-26_4-replicas"
+    "2023-02-25_6-replicas"
 ]
 
 client_data_file = "consolidated_client.csv"
@@ -148,7 +186,7 @@ def plot_client_latency_distribution(df, name, ax):
     ax.set_xlabel("client latency (ms)")
 
 
-def compare_client_latency_distributions():
+def compare_client_latency_distributions(experiments):
     fig, axs = plt.subplots(nrows=len(experiments), ncols=1, figsize=[8, 3 * len(experiments)])
     fig.tight_layout()
     for i, experiment in enumerate(experiments):
@@ -191,7 +229,7 @@ def combined_data_set(current_experiment):
     df["replicas"] = len(read_pod_id_list(current_experiment))
     return df
 
-def combined_data_sets():
+def combined_data_sets(experiments):
     dfs = [combined_data_set(ce) for ce in experiments]
     df = pd.concat(dfs, axis=0)
     df = df.dropna()

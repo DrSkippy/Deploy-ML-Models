@@ -11,7 +11,9 @@ ds = mu.NormalDelayStrategy(mu=700, sigma=300)  # const 200 ms sleep
 
 input_parameters_template = {
     "memory_request": 250,
-    "load_request": 10
+    "memory_request_std": 12.5,
+    "load_request": 10,
+    "load_request_std": 0.5
 }
 
 n = 4000

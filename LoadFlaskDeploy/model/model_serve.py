@@ -1,4 +1,4 @@
-__version__ = '0.1.0'
+__version__ = '0.2.0'
 
 import datetime
 import json
@@ -55,7 +55,9 @@ def main():
     request parameters:
     {
         "memory_request": 1,
-        "load_reqeust": 1
+        "memory_reqeust_std": 0,
+        "load_reqeust": 1,
+        "load_request_std": 0
     }
     """
     start_time = time.time()  # seconds
@@ -86,7 +88,9 @@ def main():
         "sleep_delay_ms": sleep_delay_ms,
         "load_time_ms": load_time_ms,
         "load_request": n,
-        "load_calibration": calibration
+        "load_calibration": calibration,
+        "memory_request_std": parameters["memory_request_std"],
+        "load_request_std": parameters["load_request_std"]
     }
     del mem_handle  # let GC know it is okay to drop this ref
     rdata = json.dumps({
