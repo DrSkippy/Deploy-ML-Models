@@ -34,38 +34,41 @@ def calibrate():
     for this platform.
     """
     data = []
-    for i in range(1,100, 10):
+    for i in range(1, 100, 10):
         dt, n, cal = load_function(i)
-        data.append(dt/float(i))
+        data.append(dt / float(i))
     return np.average(data)  # ms
 
 
-class DelayStrategy:
-    def __init__(self, const=10):
-        self.const = const  # ms
+class DelayWithStrategy:
+    def __init__(self, strategy):
+        self.strategy = strategy  # ms
         pass
-
-    def calculate_delay(self, size=1):
-        if size == 1:
-            return self.const
-        else:
-            return np.ones(size) * self.const
 
     def sleep_remaining(self, t0, dt=None):
         if dt is None:
-            dt = self.calculate_delay()  # delay in ms
+            dt = self.strategy.sample()  # delay in ms
         remaining = max(0, dt - t0)
         return t0 + self.sleep(dt=remaining)
 
     def sleep(self, dt=None):
         if dt is None:
-            dt = self.calculate_delay()  # delay in ms
+            dt = self.strategy.sample()  # delay in ms
         dt = max(dt, 0)
         time.sleep(dt / 1000.)  # sleep in seconds
         return dt
 
+class ConstantStrategy:
+    def __init__(self, const=10):
+        self.const = const  # ms
 
-class LogNormalDelayStrategy(DelayStrategy):
+    def sample(self, size=1):
+        if size == 1:
+            return self.const
+        else:
+            return np.ones(size) * self.const
+
+class LogNormalStrategy:
 
     def __init__(self, mu=10, sigma=10, seed=None):
         np.random.seed(seed)
@@ -74,7 +77,7 @@ class LogNormalDelayStrategy(DelayStrategy):
         self.a = np.log(mu2 / np.sqrt(mu2 + sigma2))
         self.b = np.sqrt(np.log(1. + (sigma2 / mu2)))
 
-    def calculate_delay(self, size=1):
+    def sample(self, size=1):
         """lognormal distributions"""
         if size == 1:
             # This value needs to be json serializable
@@ -84,14 +87,14 @@ class LogNormalDelayStrategy(DelayStrategy):
             return np.random.lognormal(self.a, self.b, size=(size,))
 
 
-class NormalDelayStrategy(DelayStrategy):
+class NormalStrategy:
 
     def __init__(self, mu=10, sigma=2, seed=None):
         np.random.seed(seed)
         self.mu = mu
         self.sigma = sigma
 
-    def calculate_delay(self, size=1):
+    def sample(self, size=1):
         """truncated normal distributions"""
         res = []
         for i in range(size):
@@ -153,27 +156,30 @@ if __name__ == "__main__":
     print(f"_load_function with scale={LOAD_CALIBRATION_SCALE} takes {calibrate():5.4f} ms on this platform.")
     print(f"step={i} time={time.time()} ==>");
     i += 1
-    ds = DelayStrategy()
-    print(f"delay = {ds.calculate_delay(1)}")
-    print(f"delay = {ds.calculate_delay(5)}")
+    ds = ConstantStrategy()
+    print(f"delay = {ds.sample(1)}")
+    print(f"delay = {ds.sample(5)}")
     print(f"step={i} time={time.time()} ==>");
     i += 1
-    print(f"sleeping= {ds.sleep()} ms")
+    ds_ = DelayWithStrategy(ds)
+    print(f"sleeping= {ds_.sleep()} ms")
     print(f"step={i} time={time.time()} ==>");
     i += 1
-    ds = NormalDelayStrategy()
-    print(f"delay = {ds.calculate_delay(1)}")
-    print(f"delay = {ds.calculate_delay(5)}")
+    ds = NormalStrategy()
+    print(f"delay = {ds.sample(1)}")
+    print(f"delay = {ds.sample(5)}")
     print(f"step={i} time={time.time()} ==>");
     i += 1
-    print(f"sleeping= {ds.sleep()} ms")
+    ds_ = DelayWithStrategy(ds)
+    print(f"sleeping= {ds_.sleep()} ms")
     print(f"step={i} time={time.time()} ==>");
     i += 1
-    ds = LogNormalDelayStrategy()
-    print(f"delay = {ds.calculate_delay(1)}")
-    print(f"delay = {ds.calculate_delay(5)}")
+    ds = LogNormalStrategy()
+    print(f"delay = {ds.sample(1)}")
+    print(f"delay = {ds.sample(5)}")
     print(f"step={i} time={time.time()} ==>");
     i += 1
-    print(f"sleeping= {ds.sleep()} ms")
+    ds_ = DelayWithStrategy(ds)
+    print(f"sleeping= {ds_.sleep()} ms")
     print(f"step={i} time={time.time()} ==>");
     i += 1

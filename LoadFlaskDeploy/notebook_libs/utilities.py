@@ -36,6 +36,8 @@ field_names_std = [
     'response_load_request_std'
 ]
 
+field_names = field_names_std
+
 base_data = "/Users/s.hendrickson/Working/Deploy-ML-Models/LoadFlaskDeploy/data"
 
 all_experiments = [x for x in os.listdir(base_data) if "replicas" in x]

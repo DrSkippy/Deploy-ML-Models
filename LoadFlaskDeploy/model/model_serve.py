@@ -17,7 +17,7 @@ import model_util as mu
 
 
 HOSTNAME = os.environ.get("HOSTNAME")
-ds = mu.DelayStrategy(200)  # const 200 ms sleep
+ds = mu.DelayWithStrategy(mu.ConstantStrategy(200))  # const 200 ms sleep
 
 dictConfig({
     'version': 1,
@@ -67,10 +67,16 @@ def main():
     parameters = request.get_json()
     app.logger.info(parameters)
     # allocate memory
-    mem_handle = mu.memory_function(parameters["memory_request"])
+    # mem_handle = mu.memory_function(parameters["memory_request"])
+    mem_handle = mu.memory_function(
+        mu.NormalStrategy(parameters["memory_request"],
+                          parameters["memory_reqeust_std"]).sample())
     app.logger.info(mem_handle.shape)
     # execute loading
-    load_time_ms, n, calibration = mu.load_function(parameters["load_request"])
+    # load_time_ms, n, calibration = mu.load_function(parameters["load_request"])
+    load_time_ms, n, calibration = mu.load_function(
+        mu.NormalStrategy(parameters["load_request"],
+                            parameters["load_request_std"]).sample())
     # for fractional loading, sleep part of the time
     sleep_delay_ms = ds.sleep()
     # wrap up measurements

@@ -7,7 +7,7 @@ import uuid
 
 import model.model_util as mu
 
-ds = mu.NormalDelayStrategy(mu=700, sigma=300)  # const 200 ms sleep
+ds = mu.NormalStrategy(mu=700, sigma=300)  # const 200 ms sleep
 
 input_parameters_template = {
     "memory_request": 250,
@@ -51,7 +51,9 @@ field_names = [
     'response_sleep_delay_ms',
     'response_load_time_ms',
     'response_load_request',
-    'response_load_calibration'
+    'response_load_calibration',
+    "response_memory_request_std",
+    "response_load_request_std"
 ]
 
 # url = "http://localhost:5000"
