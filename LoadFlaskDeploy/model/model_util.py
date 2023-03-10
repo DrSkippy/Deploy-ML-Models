@@ -11,6 +11,7 @@ def load_function(n=1):
     """
     CPU loading function
     """
+    n = int(n)
     start_time = time.time()
     for _ in range(n):
         for _ in range(LOAD_CALIBRATION_SCALE):
@@ -24,7 +25,7 @@ def memory_function(size=1):
 
     size = 1 ~ 2 MB
     """
-    memory_handle = np.ones((1024, 1024, size), dtype=np.uint8)
+    memory_handle = np.ones((1024, 1024, int(size)), dtype=np.uint8)
     return memory_handle
 
 
