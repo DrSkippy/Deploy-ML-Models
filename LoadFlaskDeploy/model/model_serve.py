@@ -55,8 +55,8 @@ def main():
     request parameters:
     {
         "memory_request": 1,
-        "memory_reqeust_std": 0,
-        "load_reqeust": 1,
+        "memory_request_std": 0,
+        "load_request": 1,
         "load_request_std": 0
     }
     """
@@ -70,7 +70,7 @@ def main():
     # mem_handle = mu.memory_function(parameters["memory_request"])
     mem_handle = mu.memory_function(
         mu.NormalStrategy(parameters["memory_request"],
-                          parameters["memory_reqeust_std"]).sample())
+                          parameters["memory_request_std"]).sample())
     app.logger.info(mem_handle.shape)
     # execute loading
     # load_time_ms, n, calibration = mu.load_function(parameters["load_request"])

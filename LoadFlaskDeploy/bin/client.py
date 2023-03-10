@@ -7,7 +7,7 @@ import uuid
 
 import model.model_util as mu
 
-ds = mu.NormalStrategy(mu=700, sigma=300)  # const 200 ms sleep
+ds = mu.DelayWithStrategy(mu.NormalStrategy(mu=700, sigma=300))
 
 input_parameters_template = {
     "memory_request": 250,
@@ -17,6 +17,7 @@ input_parameters_template = {
 }
 
 n = 4000
+n=10
 
 def flatten_json(y):
     out = {}
