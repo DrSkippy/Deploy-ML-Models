@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  timeseries_service:
+    image: timeseries_service
+    container_name: timeseries_service
+    ports:
+      - "8085:8085"
+    environment:
+      - APP_NAME=TS-MODEL
+    volumes:
+      - model-storage:/cache/model-storage
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8085/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  model-storage:
+    driver: local

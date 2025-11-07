@@ -6,9 +6,7 @@ authors = ["Scott Hendrickson <scott@drskippy.net>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-## manually for tensorflow
-python = ">=3.10,<3.11"
-##python = "^3.10"
+python = "^3.10"
 pandas = "^1.5.2"
 numpy = "^1.24.0"
 flask = "^2.2.2"
